@@ -1,5 +1,7 @@
 # Local oMLX council
 
+[香港廣東話](omlx-local-council_zhHK.md)
+
 This branch adds a local, browser-based implementation of the council flow to the
 original `model-council` reference project:
 
@@ -19,6 +21,8 @@ the human decides whether extra review is worth the latency and compute; the fin
 chairman actively selects, weights, and rejects evidence instead of averaging it into a
 vague compromise.
 
+See the [workflow diagrams](workflow.md) for both transports, the original CLI, and Perplexity.
+
 ## Analysis and adaptation
 
 Much credit goes to [kfc283-sudo/model-council](https://github.com/kfc283-sudo/model-council)
@@ -35,7 +39,7 @@ and its MIT-licensed implementation. Its central design is the right part to pre
 This branch changes the transport and interaction model, not that reasoning pattern:
 
 - **Transport:** the browser talks to the small local server in
-  `council/omlx_server.py`, which calls oMLX's OpenAI-compatible `/v1` API.
+  `council/omlx_server.py` or directly to oMLX's OpenAI-compatible `/v1` API.
 - **Seat composition:** the model catalog is read from `/v1/models`, so the UI can use
   whatever MLX-format chat/VLM models are installed rather than a hard-coded provider
   registry. Qwen, LLaMA, Mistral, Gemma, DeepSeek, MiniMax, GLM, and other installed
@@ -44,11 +48,13 @@ This branch changes the transport and interaction model, not that reasoning patt
   `<think>...</think>` output are normalized into a collapsible thinking panel. The
   visible answer stays separate from the reasoning details.
 - **Vision:** an optional image is sent as an OpenAI-compatible `image_url` data part.
-  The selected oMLX model must be a VLM; a text-only model will return its own upstream
-  capability error.
+  The browser checks all three model IDs against its vision-model heuristic. Actual
+  support depends on the chosen oMLX models.
 - **Privacy:** prompts, answers, images, and reviews are kept in memory for the current
   run. The browser stores only the draft, model choices, settings, and the last eight
   question briefs in localStorage. The server does not write a council transcript.
+- **Preferences:** use **ENG / 廣東話** to switch between English and Hong Kong Cantonese.
+  The adjacent menu offers System, Light, and Dark. The browser remembers both choices.
 
 The implementation deliberately leaves the reviewer-to-answer mapping out of the
 review response. Reviewers receive labels such as Answer A/B/C, and the chairman sees
@@ -62,7 +68,7 @@ to the chairman.
 - Apple Silicon Mac running macOS 15 or newer for oMLX.
 - Python 3.10 or newer for this repository's local web server.
 - oMLX installed and a model directory containing at least three usable chat models;
-  include a VLM if image prompts are needed.
+  choose three vision-language models if image prompts are needed.
 - A modern browser.
 
 oMLX itself is documented at [omlx.ai](https://omlx.ai/) and in the
@@ -84,6 +90,7 @@ The oMLX server must be running before the model council can discover models.
 From the repository root:
 
 ```bash
+python -m pip install boto3
 python -m council.omlx_server
 ```
 
@@ -109,20 +116,16 @@ the key is used only by the Python proxy. In static/direct mode the API key can 
 be entered in the browser's **oMLX** settings panel; it is stored in that browser's
 localStorage and sent as a Bearer token to the configured oMLX server.
 
-No additional Python package is required by the local council server; it uses the
-standard library. The original Bedrock command path still requires its documented
-`boto3` setup.
+The proxy uses the Python standard library. The package currently imports the Bedrock
+adapter at startup, so the module command also requires `boto3`. AWS credentials are
+only needed for the Bedrock path.
 
 ## GitHub Pages and Windows access
 
 The `web/` folder is also a dependency-free static site. The branch includes a GitHub
 Actions workflow at `.github/workflows/pages.yml` that publishes that folder to GitHub
-Pages. Once Pages is enabled with **GitHub Actions** as the publishing source, the fork's
-project site is normally available at:
-
-```text
-https://dtywong.github.io/model-council-omlx-local/
-```
+Pages. Once Pages is enabled with **GitHub Actions** as the publishing source, look for
+the deployment URL under the repository's **Settings → Pages**.
 
 A Windows user does not need Python or a local checkout to use that site. Open the site,
 click **oMLX** in the top bar, and enter:
@@ -162,7 +165,7 @@ masked.
    oMLX model ID into a seat.
 3. Enter one question or decision brief. The draft is saved locally in the browser.
 4. Enable or disable **Deep thinking mode** and set the thinking budget and answer limit.
-5. Optionally attach one image for a VLM seat.
+5. Optionally attach one image up to 8 MB. Choose a vision-language model for all three seats.
 6. Select **Ask the council**. All three seats receive the same brief in parallel.
 7. Watch the processing banner: it shows that the council is actively processing and,
    in direct browser mode, how many seats have returned. Local proxy mode shows an
@@ -208,7 +211,7 @@ omissions or incorrect confidence.
 ### Local storage and privacy
 
 The browser's localStorage contains the current draft, selected model IDs, thinking
-settings, up to eight recent question briefs, and—only if configured in the static
+settings, up to eight recent question briefs, language and appearance preferences, and—only if configured in the static
 settings panel—the oMLX server address and API key. It intentionally does not store
 model answers, reasoning, review packets, or images. Use **Clear local history** to
 remove the saved question history on this browser/device; remove the oMLX settings
@@ -222,7 +225,7 @@ the run.
 | `oMLX unavailable` | Confirm oMLX is running and that `OMLX_BASE_URL` points to its server root, not a path that already ends in `/v1`. |
 | No models discovered | Confirm models are installed in oMLX's configured model directory, then press the refresh button. |
 | A seat fails | Check the model ID, available unified memory, and the oMLX error shown in that column. |
-| Image request fails | Use a VLM model for that seat and keep the image at or below the local 8 MB limit. |
+| Image request fails | Use a vision-language model for all three seats and keep the image at or below 8 MB. |
 | Reasoning is empty | The selected model may not return reasoning, or deep thinking may be disabled. Visible answer text is still usable. |
 | Browser cannot connect | Open the exact local council URL printed by `python -m council.omlx_server`; port 8765 is the default. |
 | GitHub Pages cannot connect | Check the oMLX address, HTTPS/mixed-content rules, CORS, firewall/VPN reachability, and the API key. |
@@ -232,6 +235,6 @@ the run.
 
 - `council/omlx_server.py` — local static server, oMLX proxy, stage orchestration, and
   reasoning/image normalization.
-- `web/index.html`, `web/styles.css`, `web/app.js` — the three-column council UI and
-  localStorage-backed notebook.
+- `web/index.html`, `web/styles.css`, `web/app.js`, and `web/preferences.js` — the
+  three-column council UI, localStorage-backed notebook, and browser preferences.
 - `docs/omlx-local-council.md` — this analysis, installation manual, and user manual.

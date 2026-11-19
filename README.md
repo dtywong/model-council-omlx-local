@@ -1,5 +1,7 @@
 # Council — multi-model deliberation for hard judgment calls
 
+[香港廣東話](README_zhHK.md)
+
 A council is a structured way to get several AI models' independent answers to the same
 question, then combine them into something better than any single one — by active selection,
 not by averaging.
@@ -62,8 +64,11 @@ DeepSeek, MiniMax, GLM, VLM, or other model can be selected by ID.
 With oMLX running on its default port:
 
 ```bash
+python -m pip install boto3
 python -m council.omlx_server
 ```
+
+The package imports its Bedrock adapter at startup. The local oMLX proxy uses no AWS credentials.
 
 Then open `http://127.0.0.1:8765`. The browser stores drafts, settings, and recent
 question briefs locally; the local server does not persist council outputs. Reasoning

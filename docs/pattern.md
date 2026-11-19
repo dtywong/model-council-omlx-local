@@ -1,5 +1,7 @@
 # The council pattern — running several models on one hard question
 
+[香港廣東話](pattern_zhHK.md)
+
 A council is a small, structured way to get more than one AI model's opinion on a question,
 and to combine their answers into something better than any single one, deliberately, not
 just by averaging them together.

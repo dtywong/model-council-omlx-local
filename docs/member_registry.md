@@ -1,5 +1,7 @@
 # Council member registry — template
 
+[香港廣東話](member_registry_zhHK.md)
+
 A council needs a registry: one entry per model you can call as a "seat," with enough
 detail that convening a council is a lookup, not a re-decision every time. This is a
 template showing the shape of that registry, not a specific person's live roster.

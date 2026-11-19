@@ -1,5 +1,7 @@
 # Council scorecard — schema
 
+[香港廣東話](scorecard_schema_zhHK.md)
+
 A council is only as trustworthy as the track record you keep on it. Without a running
 scorecard, "which models are actually good at what" reverts to a guess re-made every time.
 This file defines the schema; keep your own real rows in your own copy, not in a public
