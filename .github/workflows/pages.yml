@@ -3,8 +3,7 @@ name: Deploy local council UI to GitHub Pages
 on:
   push:
     branches:
-      - feature/omlx-local-council-ui
-      - omlx-secure-preview
+      - master
   workflow_dispatch:
 
 permissions:
